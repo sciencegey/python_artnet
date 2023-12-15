@@ -1,0 +1,14 @@
+{
+    "python.analysis.diagnosticSeverityOverrides": {
+        "reportMissingModuleSource": "none"
+    },
+    "python.languageServer": "Pylance",
+    "python.analysis.extraPaths": [
+        "",
+        "/home/sam/.vscode-server/extensions/joedevivo.vscode-circuitpython-0.1.20-linux-x64/stubs",
+        "/home/sam/.vscode-server/data/User/globalStorage/joedevivo.vscode-circuitpython/bundle/20231215/adafruit-circuitpython-bundle-py-20231215/lib"
+    ],
+    "circuitpython.board.version": null,
+    "python.analysis.autoImportCompletions": true,
+    "python.analysis.typeCheckingMode": "basic"
+}

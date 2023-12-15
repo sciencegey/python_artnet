@@ -164,7 +164,7 @@ class Artnet:
         # and checks to see if the packet is an DMX Artnet packet (0x5000)
         if opCode[0] == 80:
             # makes sure the packet is the correct length (if it fetches them too quickly it comes through all malformed)
-            if len(raw_data) == 18+length:
+            if len(raw_data) == 18+length[0]:
                 # stores the packet...
                 packet = ArtnetPacket()
                 # ...then unpacks it into it's constituent parts
