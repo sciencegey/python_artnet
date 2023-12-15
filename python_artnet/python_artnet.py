@@ -36,7 +36,7 @@ class ArtPollReplyPacket:
     '''This class holds the ArtPollReply packet'''
     def __init__(self):
         self.id = b'Art-Net\x00'                # b'Art-Net\x00' (int8)
-        self.opCode = pack('<H', 0x2100)        # 33 (0x2100) (int16) (little endian)
+        self.opCode = pack('<H', 0x2100)        # 0x2100 (int16) (little endian)
         self.ipAddress = [127,0,0,1]            # array of the IP address (4xint8)
         self.port = pack('<H', 0x1936)          # 6454 (0x1936) (int16) (little endian)
         self.versInfo = b"14"                   # We're operating on V1.4 (14) (int16, split in two)
@@ -82,16 +82,20 @@ class ArtPollReplyPacket:
 class Artnet:
     ARTNET_HEADER = b'Art-Net\x00' # the header for artnet packets
 
-    def __init__(self, BINDIP = "", PORT = 6454, SYSIP = "10.10.10.1", MAC = ["AA","BB","CC","DD","EE","FF"], SWVER = "14", OEMCODE = 0xabcd, ESTACODE = 0x7FF0, PORTTYPE = [0x80,0x00,0x00,0x00], REFRESH = 44):
+    def __init__(self, BINDIP = "", PORT = 6454, SYSIP = "10.10.10.1", MAC = ["AA","BB","CC","DD","EE","FF"], SWVER = "14", SHORTNAME = "python_artnet", LONGNAME = "python_artnet", OEMCODE = 0xabcd, ESTACODE = 0x7FF0, PORTTYPE = [0x80,0x00,0x00,0x00], REFRESH = 44, DEBUG = False):
         self.BINDIP = BINDIP        # IP to listen on (either 0.0.0.0 (all interfaces) or a broadcast address)
         self.SYSIP = SYSIP          # IP of the system itself
         self.PORT = PORT            # Port to listen on (default is 6454)
         self.MAC = MAC              # MAC address of the ArtNet port
         self.SWVER = SWVER          # Software version
+        self.SHORTNAME = SHORTNAME[:17] # Short name
+        self.LONGNAME = LONGNAME[:63]   # Long name
         self.OEMCODE = OEMCODE      # ArtNet OEM code
         self.ESTACODE = ESTACODE    # ESTA Manufacturer code
         self.PORTTYPE = PORTTYPE    # 
         self.REFRESH = REFRESH      # Refresh rate of the node
+
+        self.debug = DEBUG
 
         self.packet = None
 
@@ -138,16 +142,16 @@ class Artnet:
         reply.refreshRate = self.REFRESH
         for i in range(len(self.MAC)):
             reply.mac[i] = bytes.fromhex(self.MAC[i])
-        reply.portName = b"Hello".ljust(18, b'\x00')
-        reply.longName = b"World!".ljust(64, b'\x00')
+        reply.portName = str.encode(self.SHORTNAME).ljust(18, b'\x00')
+        reply.longName = str.encode(self.LONGNAME).ljust(64, b'\x00')
         
-        if debug: print(*reply)
+        if self.debug: print(*reply)
         packedReply = pack('!8s2s4B2s2sBBHBB2s18s64s64sH4B4B4B4B4BBBB3sB1s1s1s1s1s1s4BBBBB6sHH11s', *reply)
         
         # Sleep a random period between 0 and 1 seconds before sending the reply
         sleep(random.random())
         self.sock.sendto(packedReply, senderAddr)
-        if debug: print("sent!")
+        if self.debug: print("sent!")
         
         return None
         
@@ -155,24 +159,24 @@ class Artnet:
         '''Extracts DMX data from the Artnet packet and returns it as a nice array.'''
         if unpack('!8s', raw_data[:8])[0] != Artnet.ARTNET_HEADER:
             # The packet doesn't have a valid header, so it's probably not an Artnet packet (or it's broken... :V)
-            if debug: print("Received a non Art-Net packet")
+            if self.debug: print("Received a non Art-Net packet")
             return None
 
         # Extracts the opcode from the packed (little endian int16)
         opCode = unpack('<H', raw_data[8:10])
-        length = unpack('!H', raw_data[16:18])
         # and checks to see if the packet is an DMX Artnet packet (0x5000)
-        if opCode[0] == 80:
+        if opCode[0] == 0x5000:
+            length = unpack('!H', raw_data[16:18])
             # makes sure the packet is the correct length (if it fetches them too quickly it comes through all malformed)
             if len(raw_data) == 18+length[0]:
                 # stores the packet...
                 packet = ArtnetPacket()
                 # ...then unpacks it into it's constituent parts
-                (packet.opCode, packet.ver, packet.sequence, packet.physical, packet.universe, packet.length) = unpack('!HHBBHH', raw_data[8:18])
+                (packet.ver, packet.sequence, packet.physical, packet.universe, packet.length) = unpack('!HBBHH', raw_data[10:18])
                 
                 # These guys are little endian, so we need to swap the order
-                packet.opCode[0::2], packet.opCode[1::2] = packet.opCode[1::2], packet.opCode[0::2]
-                packet.universe[0::2], packet.universe[1::2] = packet.universe[1::2], packet.universe[0::2]
+                packet.opCode = opCode[0]
+                packet.universe = unpack('<H', pack('!H', packet.universe))[0]
 
                 # this takes the DMX data and converts it to an array
                 rawData = unpack(
@@ -186,19 +190,19 @@ class Artnet:
                 return None
 
         # or checks to see if the packet is an ArtPoll packet (0x2000)
-        elif opCode[0] == 32:
-            if debug: print("poll!")
+        elif opCode[0] == 0x2000:
+            if self.debug: print("poll!")
             # if the packet is at least 14 bytes, then it might be an ArtPoll packet
             if len(raw_data) >= 14:
                 # stores the packet...
                 pollPacket = ArtPollPacket()
                 # ...then unpacks it into it's constituent parts
-                (pollPacket.opCode, pollPacket.ver, pollPacket.flags, pollPacket.diagPriority) = unpack('!HHBB', raw_data[8:14])
-                # This guy is little endian, so we need to swap the order
-                pollPacket.opCode[0::2], pollPacket.opCode[1::2] = pollPacket.opCode[1::2], pollPacket.opCode[0::2]
+                (pollPacket.ver, pollPacket.flags, pollPacket.diagPriority) = unpack('!HBB', raw_data[10:14])
+
+                pollPacket.opCode = opCode[0]
                 
                 # Then we need to be nice and send an ArtPollReply to let the controller know that we exist
-                self.reply = threading.Thread(target=Artnet.art_pol_reply, args=(self, senderAddr, self.PORT))
+                self.reply = threading.Thread(target=Artnet.art_pol_reply, args=(self, senderAddr))
                 self.reply.start()
                 
                 # When we've sent the packet, we can return
@@ -221,9 +225,8 @@ if __name__ == "__main__":
     systemIp = "192.168.1.165"
     artnetPort = 6454
     artnetUniverse = 0
-    debug = True
     
-    artNet = Artnet(artnetBindIp,artnetPort,systemIp)
+    artNet = Artnet(artnetBindIp,artnetPort,systemIp,DEBUG=True)
     while True:
         try:
             artNetPacket = artNet.readPacket()

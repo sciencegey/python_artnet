@@ -13,9 +13,8 @@ artnetUniverse = 0
 
 ### Art-Net Setup ###
 # Sets debug in Art-Net module.
-Artnet.debug = debug
 # Creates Artnet socket on the selected IP and Port
-artNet = Artnet.Artnet(artnetBindIp)
+artNet = Artnet.Artnet(artnetBindIp, DEBUG=debug)
 
 while True:
     try:

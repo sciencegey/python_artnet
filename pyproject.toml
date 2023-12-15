@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools","setuptools_scm"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -11,14 +11,15 @@ maintainers = [
     {name = "sciencegey"}
 ]
 description = "Easy-to-use and simple python receiver for Art-Net (that also implements device polling)."
-readme = {file = "README.txt", content-type = "text/markdown"}
+readme = {file = "README.md", content-type = "text/markdown"}
 requires-python = ">=3.8"
+version = "1.0.0"
 keywords = ["Art-Net", "ArtNet", "DMX", "Lighting", "Lighting Control"]
 license = {file = "LICENSE"}
 classifiers = [
     "Development Status :: 4 - Beta",
 
-    "Topic :: Software :: Libraries :: Python Modules",
+    "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: Artistic Software",
     "Topic :: Multimedia",
     "Intended Audience :: Developers",
@@ -33,12 +34,10 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12"
 ]
-dynamic = ["version"]
 
 [project.urls]
 Homepage = "https://github.com/sciencegey/python_artnet"
 Repository = "https://github.com/sciencegey/python_artnet.git"
 Issues = "https://github.com/sciencegey/python_artnet/issues"
 
-[tools.setuptools.dynamic]
-version = {attr = "python_artnet.__version__"}
+[tool.setuptools_scm]
