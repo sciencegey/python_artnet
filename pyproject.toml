@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools","setuptools_scm"]
+requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -40,4 +40,6 @@ Homepage = "https://github.com/sciencegey/python_artnet"
 Repository = "https://github.com/sciencegey/python_artnet.git"
 Issues = "https://github.com/sciencegey/python_artnet/issues"
 
-[tool.setuptools_scm]
+[tool.setuptools]
+packages = ["python_artnet"]
+include-package-data = false

@@ -2,11 +2,17 @@
 Easy-to-use and simple python receiver for Art-Net (that also implements device polling).
 
 ## Installaton
-All you need to do is clone the repository and start using it!
+All you need to do is clone the repository
 ``` bash
 $ git clone https://github.com/sciencegey/python_artnet.git
 $ cd python_artnet
-$ python3 exampleReceiver.py
+$ python3 samples/exampleReceiver.py
+```
+***OR***
+
+Install using PIP
+``` bash
+$ pip install python_artnet
 ```
 
 ## Usage
