@@ -9,8 +9,12 @@
 name: 🐍 Publish package to PyPi
 
 on:
-  release:
-    types: [published]
+  push:
+  # Only runs when there is a new tag
+    tags:
+    - '*'
+  # Allows you to manually run
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -23,7 +27,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python
-      uses: actions/setup-python@v3
+      uses: actions/setup-python@v4
       with:
         python-version: '3.x'
     - name: Install dependencies
@@ -33,7 +37,7 @@ jobs:
     - name: Build package
       run: python -m build
     - name: Publish package
-      uses: pypa/gh-action-pypi-publish@27b31702a0e7fc50959f5ad993c78deac1bdfc29
+      uses: pypa/gh-action-pypi-publish@release/v1.8
       with:
         user: __token__
         password: ${{ secrets.PYPI_API_TOKEN }}
