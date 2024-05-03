@@ -98,6 +98,7 @@ class Artnet:
         self.debug = DEBUG
 
         self.packet = None
+        self.packetBuffer = [ArtnetPacket()]*16
 
         # Starts the listner in it's own thread
         self.listen = True
@@ -185,6 +186,7 @@ class Artnet:
                 
                 packet.data = list(rawData)
                 # then returns it
+                self.packetBuffer[packet.universe] = packet
                 return packet
             else:
                 return None
@@ -218,6 +220,10 @@ class Artnet:
     def readPacket(self):
         '''Returns the last ArtNet packet that we received.'''
         return(self.packet)
+    
+    def readBuffer(self):
+        '''Returns the ArtNet packet buffer'''
+        return(self.packetBuffer)
     
 if __name__ == "__main__":
     ### ArtNet Config ###
