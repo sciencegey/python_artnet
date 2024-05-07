@@ -1,4 +1,4 @@
-'''Simple library that takes Artnet (DMX) packets and converts them to data that Python can use.
+'''Simple library that takes Art-Net (DMX) packets and converts them to data that Python can use.
 
 Made in Python 3.8
 Artnet spec: https://www.artisticlicence.com/WebSiteMaster/User%20Guides/art-net.pdf
@@ -80,20 +80,20 @@ class ArtPollReplyPacket:
                 yield each
 
 class Artnet:
-    ARTNET_HEADER = b'Art-Net\x00' # the header for artnet packets
+    ARTNET_HEADER = b'Art-Net\x00' # the header for Art-Net packets
 
     def __init__(self, BINDIP = "", PORT = 6454, SYSIP = "10.10.10.1", MAC = ["AA","BB","CC","DD","EE","FF"], SWVER = "14", SHORTNAME = "python_artnet", LONGNAME = "python_artnet", OEMCODE = 0xabcd, ESTACODE = 0x7FF0, PORTTYPE = [0x80,0x00,0x00,0x00], REFRESH = 44, DEBUG = False):
-        self.BINDIP = BINDIP        # IP to listen on (either 0.0.0.0 (all interfaces) or a broadcast address)
-        self.SYSIP = SYSIP          # IP of the system itself
-        self.PORT = PORT            # Port to listen on (default is 6454)
-        self.MAC = MAC              # MAC address of the ArtNet port
-        self.SWVER = SWVER          # Software version
+        self.BINDIP = BINDIP            # IP to listen on (either 0.0.0.0 (all interfaces) or a broadcast address)
+        self.SYSIP = SYSIP              # IP of the system itself
+        self.PORT = PORT                # Port to listen on (default is 6454)
+        self.MAC = MAC                  # MAC address of the ArtNet port
+        self.SWVER = SWVER              # Software version
         self.SHORTNAME = SHORTNAME[:17] # Short name
         self.LONGNAME = LONGNAME[:63]   # Long name
-        self.OEMCODE = OEMCODE      # ArtNet OEM code
-        self.ESTACODE = ESTACODE    # ESTA Manufacturer code
-        self.PORTTYPE = PORTTYPE    # 
-        self.REFRESH = REFRESH      # Refresh rate of the node
+        self.OEMCODE = OEMCODE          # Art-Net OEM code
+        self.ESTACODE = ESTACODE        # ESTA Manufacturer code
+        self.PORTTYPE = PORTTYPE        # 
+        self.REFRESH = REFRESH          # Refresh rate of the node
 
         self.debug = DEBUG
 
@@ -157,15 +157,15 @@ class Artnet:
         return None
         
     def artnet_packet_to_array(self, raw_data, senderAddr):
-        '''Extracts DMX data from the Artnet packet and returns it as a nice array.'''
+        '''Extracts DMX data from the Art-Net packet and returns it as a nice array.'''
         if unpack('!8s', raw_data[:8])[0] != Artnet.ARTNET_HEADER:
-            # The packet doesn't have a valid header, so it's probably not an Artnet packet (or it's broken... :V)
+            # The packet doesn't have a valid header, so it's probably not an Art-Net packet (or it's broken... :V)
             if self.debug: print("Received a non Art-Net packet")
             return None
 
         # Extracts the opcode from the packed (little endian int16)
         opCode = unpack('<H', raw_data[8:10])
-        # and checks to see if the packet is an DMX Artnet packet (0x5000)
+        # and checks to see if the packet is an DMX Art-Net packet (0x5000)
         if opCode[0] == 0x5000:
             length = unpack('!H', raw_data[16:18])
             # makes sure the packet is the correct length (if it fetches them too quickly it comes through all malformed)
@@ -218,15 +218,19 @@ class Artnet:
             return None
 
     def readPacket(self):
-        '''Returns the last ArtNet packet that we received.'''
+        '''Returns the last Art-Net packet that we received.'''
         return(self.packet)
     
     def readBuffer(self):
-        '''Returns the ArtNet packet buffer'''
+        '''Returns the Art-Net packet buffer'''
         return(self.packetBuffer)
     
+    def version(self):
+        '''Returns the library version'''
+        return "1.1.0"
+    
 if __name__ == "__main__":
-    ### ArtNet Config ###
+    ### Art-Net Config ###
     artnetBindIp = ""
     systemIp = "192.168.1.165"
     artnetPort = 6454
