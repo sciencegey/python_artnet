@@ -55,17 +55,24 @@ change this. *(Defaults to 6454)*
 - **DEBUG** - Used to turn on debug output. *(Defaults to False)*
 </details>
 
-<details>
-<summary>The artnet packet consists of the following:</summary>
-
+### The artnet packet consists of the following:
 - **ver** - Which version of Art-Net the packet is using. *Latest is V1.4 (14)*
 - **sequence** - Sequence number, used to check if the packets have arrived in the correct order *(counts up to 255)*
 - **physical** - The physical DMX512 port this data came from
 - **universe** - Which universe this packet is meant for
 - **data** - The data in the packet
 - **length** - How much DMX data we have *(full packet is 18+length)*
-</details>
 
-Further information on how it all works can be found in the [Art-Net documentation](https://www.artisticlicence.com/WebSiteMaster/User%20Guides/art-net.pdf).
+
+### The following functions are available to use:
+- **readPacket** - Returns the last Art-Net packet that we received. *(Returns ArtnetPacket)*
+- **readBuffer** - Returns the last Art-Net packet that we received for each universe. *(Returns an array of ArtnetPacket, one per universe)*
+- **close** - Make sure to run this at the end of your program. Tells the socket to stop running and joins the thread back. *(Returns None)*
+- **version** - Returns the library version. *(Returns String)*
+
+
+Further information on how it all works can be found in the [Art-Net documentation](https://www.artisticlicence.com/WebSiteMaster/User%20Guides/art-net.pdf).\
+*Art-Net™ Designed by and Copyright Artistic Licence Engineering Ltd*
+
 ## License
 This project is licensed under an MIT License (see the [LICENSE](LICENSE) file).

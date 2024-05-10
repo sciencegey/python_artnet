@@ -129,6 +129,7 @@ class Artnet:
         '''Tells the socket to stop running and joins the thread back'''
         self.listen = False
         self.t.join()
+        return None
 
     def art_pol_reply(self, senderAddr):
         '''Sends a reply to an ArtPoll packet; this allows other devices on the network to know who we are.'''
@@ -239,13 +240,14 @@ if __name__ == "__main__":
     artNet = Artnet(artnetBindIp,artnetPort,systemIp,DEBUG=True)
     while True:
         try:
-            artNetPacket = artNet.readPacket()
+            artNetPacket = artNet.readBuffer()
+            # Makes sure the packet is valid and that there's some data available
             if artNetPacket is not None:
-                # Checks to see if the current packet is for the specified DMX Universe
-                if artNetPacket.universe == artnetUniverse:
+                if artNetPacket[artnetUniverse].data is not None:
                     # Stores the packet data array
-                    dmx = artNetPacket.data
+                    dmx = artNetPacket[artnetUniverse].data
                     print(*dmx[:12])
                     sleep(1)
+        
         except KeyboardInterrupt:
             break
