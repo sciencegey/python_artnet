@@ -226,9 +226,9 @@ class Artnet:
         '''Returns the Art-Net packet buffer'''
         return(self.packetBuffer)
     
-    def version(self):
-        '''Returns the library version'''
-        return "1.1.0"
+def version():
+    '''Returns the library version'''
+    return "1.1.0"
     
 if __name__ == "__main__":
     ### Art-Net Config ###
