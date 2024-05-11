@@ -1,6 +1,7 @@
 import time
 import sys
-import python_artnet as Artnet
+sys.path.insert(0, '..')
+from python_artnet import python_artnet as Artnet
 
 debug = True
 
@@ -18,16 +19,20 @@ artNet = Artnet.Artnet(artnetBindIp, DEBUG=debug)
 
 while True:
     try:
-        # Gets whatever the last Art-Net packet we received is
-        artNetPacket = artNet.readPacket()
-        # Make sure we actually *have* a packet
-        if artNetPacket is not None and artNetPacket.data is not None:
-            # Checks to see if the current packet is for the specified DMX Universe
-            if artNetPacket.universe == artnetUniverse:
+        # First get the latest Art-Net data 
+        artNetBuffer = artNet.readBuffer()
+        # And make sure we actually got something
+        if artNetBuffer is not None:
+            # Get the packet from the buffer for the specific universe
+            artNetPacket = artNetBuffer[artnetUniverse]
+            # And make sure the packet has some data
+            if artNetPacket.data is not None:
                 # Stores the packet data array
                 dmxPacket = artNetPacket.data
+                sequenceNo = artNetPacket.sequence
                 
                 # Then print out the data from each channel
+                print("Sequence no: ", sequenceNo)
                 print("Received data: ", end="")
                 for i in dmxChannels:
                     # Lists in python start at 0, so to access a specific DMX channel you have to subtract one
