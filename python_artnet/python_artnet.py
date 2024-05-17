@@ -110,11 +110,14 @@ class Artnet:
         self.sock = socket(AF_INET, SOCK_DGRAM)  # UDP
         self.sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
         self.sock.bind((self.BINDIP, self.PORT))
+        self.sock.settimeout(5)
         
         # Will keep listening until it's told to stop ;)
         while self.listen:
             try:
                 data, addr = self.sock.recvfrom(1024)
+            except TimeoutError:
+                continue
             except Exception as e:
                 # Unless something goes wrong :V
                 sleep(0.1)
@@ -251,3 +254,6 @@ if __name__ == "__main__":
         
         except KeyboardInterrupt:
             break
+    
+    artNet.close()
+    
