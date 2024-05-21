@@ -231,7 +231,7 @@ class Artnet:
     
 def version():
     '''Returns the library version'''
-    return "1.1.0"
+    return "1.2.0"
     
 if __name__ == "__main__":
     ### Art-Net Config ###
