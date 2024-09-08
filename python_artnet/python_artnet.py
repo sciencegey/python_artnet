@@ -1,6 +1,7 @@
 '''Simple library that takes Art-Net (DMX) packets and converts them to data that Python can use.
 
 Made in Python 3.8
+
 Artnet spec: https://www.artisticlicence.com/WebSiteMaster/User%20Guides/art-net.pdf
 '''
 import threading
@@ -61,7 +62,7 @@ class ArtPollReplyPacket:
         self.null1 = b'\x00'*3                  # 3 bytes of null go here
         self.style = 0x00                       # see art-net documentation (int8)
         self.mac = [b"\x00"]*6                  # MAC address of the interface (6xint8)
-        self.bindIp = [0,0,0,0]                 # IP address of the rppt device (only if part of a larger product) (4xint8)
+        self.bindIp = [0,0,0,0]                 # IP address of the root device (only if part of a larger product) (4xint8)
         self.bindIndex = 0                      # 
         self.status2 = 0b00001101               # see art-net documentation (int8)
         self.goodOutputB = 0b11000000           # see art-net documentation (int8)
@@ -82,7 +83,7 @@ class ArtPollReplyPacket:
 class Artnet:
     ARTNET_HEADER = b'Art-Net\x00' # the header for Art-Net packets
 
-    def __init__(self, BINDIP = "", PORT = 6454, SYSIP = "10.10.10.1", MAC = ["AA","BB","CC","DD","EE","FF"], SWVER = "14", SHORTNAME = "python_artnet", LONGNAME = "python_artnet", OEMCODE = 0xabcd, ESTACODE = 0x7FF0, PORTTYPE = [0x80,0x00,0x00,0x00], REFRESH = 44, DEBUG = False):
+    def __init__(self, BINDIP = "", PORT = 6454, SYSIP = "10.10.10.1", MAC = ["AA","BB","CC","DD","EE","FF"], SWVER = "14", SHORTNAME = "python_artnet", LONGNAME = "python_artnet", OEMCODE = 0xabcd, ESTACODE = 0x7FF0, PORTTYPE = [0x80,0x00,0x00,0x00], REFRESH = 44, DEBUG = False, UNILENGTH = 16):
         self.BINDIP = BINDIP            # IP to listen on (either 0.0.0.0 (all interfaces) or a broadcast address)
         self.SYSIP = SYSIP              # IP of the system itself
         self.PORT = PORT                # Port to listen on (default is 6454)
@@ -98,7 +99,7 @@ class Artnet:
         self.debug = DEBUG
 
         self.packet = None
-        self.packetBuffer = [ArtnetPacket()]*16
+        self.packetBuffer = [ArtnetPacket()]*UNILENGTH
 
         # Starts the listner in it's own thread
         self.listen = True
@@ -168,9 +169,10 @@ class Artnet:
             return None
 
         # Extracts the opcode from the packed (little endian int16)
-        opCode = unpack('<H', raw_data[8:10])
+        (opCode) = unpack('<H', raw_data[8:10])
+        
         # and checks to see if the packet is an DMX Art-Net packet (0x5000)
-        if opCode[0] == 0x5000:
+        if opCode == 0x5000:
             length = unpack('!H', raw_data[16:18])
             # makes sure the packet is the correct length (if it fetches them too quickly it comes through all malformed)
             if len(raw_data) == 18+length[0]:
@@ -180,7 +182,7 @@ class Artnet:
                 (packet.ver, packet.sequence, packet.physical, packet.universe, packet.length) = unpack('!HBBHH', raw_data[10:18])
                 
                 # These guys are little endian, so we need to swap the order
-                packet.opCode = opCode[0]
+                packet.opCode = opCode
                 packet.universe = unpack('<H', pack('!H', packet.universe))[0]
 
                 # this takes the DMX data and converts it to an array
@@ -190,13 +192,17 @@ class Artnet:
                 
                 packet.data = list(rawData)
                 # then returns it
-                self.packetBuffer[packet.universe] = packet
-                return packet
+                if packet.universe <= len(self.packetBuffer):
+                    self.packetBuffer[packet.universe] = packet
+                    return packet
+                else:
+                    if self.debug: print("Received universe too high, discarding...")
+                    return None
             else:
                 return None
 
         # or checks to see if the packet is an ArtPoll packet (0x2000)
-        elif opCode[0] == 0x2000:
+        elif opCode == 0x2000:
             if self.debug: print("poll!")
             # if the packet is at least 14 bytes, then it might be an ArtPoll packet
             if len(raw_data) >= 14:
@@ -205,7 +211,7 @@ class Artnet:
                 # ...then unpacks it into it's constituent parts
                 (pollPacket.ver, pollPacket.flags, pollPacket.diagPriority) = unpack('!HBB', raw_data[10:14])
 
-                pollPacket.opCode = opCode[0]
+                pollPacket.opCode = opCode
                 
                 # Then we need to be nice and send an ArtPollReply to let the controller know that we exist
                 self.reply = threading.Thread(target=Artnet.art_pol_reply, args=(self, senderAddr))
