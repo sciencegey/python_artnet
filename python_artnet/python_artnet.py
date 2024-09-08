@@ -172,7 +172,7 @@ class Artnet:
         (opCode) = unpack('<H', raw_data[8:10])
         
         # and checks to see if the packet is an DMX Art-Net packet (0x5000)
-        if opCode == 0x5000:
+        if opCode[0] == 0x5000:
             length = unpack('!H', raw_data[16:18])
             # makes sure the packet is the correct length (if it fetches them too quickly it comes through all malformed)
             if len(raw_data) == 18+length[0]:
@@ -192,7 +192,7 @@ class Artnet:
                 
                 packet.data = list(rawData)
                 # then returns it
-                if packet.universe <= len(self.packetBuffer):
+                if packet.universe < len(self.packetBuffer):
                     self.packetBuffer[packet.universe] = packet
                     return packet
                 else:
@@ -202,7 +202,7 @@ class Artnet:
                 return None
 
         # or checks to see if the packet is an ArtPoll packet (0x2000)
-        elif opCode == 0x2000:
+        elif opCode[0] == 0x2000:
             if self.debug: print("poll!")
             # if the packet is at least 14 bytes, then it might be an ArtPoll packet
             if len(raw_data) >= 14:
@@ -246,7 +246,7 @@ if __name__ == "__main__":
     artnetPort = 6454
     artnetUniverse = 0
     
-    artNet = Artnet(artnetBindIp,artnetPort,systemIp,DEBUG=True)
+    artNet = Artnet(artnetBindIp,artnetPort,systemIp,DEBUG=True, UNILENGTH=8)
     while True:
         try:
             artNetPacket = artNet.readBuffer()
@@ -255,9 +255,14 @@ if __name__ == "__main__":
                 if artNetPacket[artnetUniverse].data is not None:
                     # Stores the packet data array
                     dmx = artNetPacket[artnetUniverse].data
-                    print(*dmx[:12])
-                    sleep(1)
+                    print("1: ",*dmx[:12])
+                
+                if artNetPacket[1].data is not None:
+                    # Stores the packet data array
+                    dmx = artNetPacket[1].data
+                    print("2: ",*dmx[:12])
         
+            sleep(0.5)
         except KeyboardInterrupt:
             break
     
