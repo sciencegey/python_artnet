@@ -80,3 +80,5 @@ jobs:
         path: dist/
     - name: Publish package
       uses: pypa/gh-action-pypi-publish@release/v1.10
+      with:
+        repository-url: https://test.pypi.org/legacy/
