@@ -19,7 +19,7 @@ artNet = Artnet.Artnet(artnetBindIp, DEBUG=debug)
 
 while True:
     try:
-        # First get the latest Art-Net data 
+        # First get the latest Art-Net data
         artNetBuffer = artNet.readBuffer()
         # And make sure we actually got something
         if artNetBuffer is not None:
