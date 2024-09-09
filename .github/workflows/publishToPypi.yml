@@ -61,22 +61,22 @@ jobs:
     - name: Publish package
       uses: pypa/gh-action-pypi-publish@release/v1.10
 
-  # publish-to-test-pypi:
-  #   name: Publish 🐍 package to TestPyPi 👷‍♂️
-  #   needs:
-  #   - build
-  #   runs-on: ubuntu-latest
-  #   environment:
-  #     name: testpypi
-  #     url: https://test.pypi.org/p/python_artnet
-  #   permissions:
-  #     id-token: write
+  publish-to-test-pypi:
+    name: Publish 🐍 package to TestPyPi 👷‍♂️
+    needs:
+    - build
+    runs-on: ubuntu-latest
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/p/python_artnet
+    permissions:
+      id-token: write
       
-  #   steps:
-  #   - name: Download all the dists
-  #     uses: actions/download-artifact@v4
-  #     with:
-  #       name: python-package-distributions
-  #       path: dist/
-  #   - name: Publish package
-  #     uses: pypa/gh-action-pypi-publish@release/v1.10
+    steps:
+    - name: Download all the dists
+      uses: actions/download-artifact@v4
+      with:
+        name: python-package-distributions
+        path: dist/
+    - name: Publish package
+      uses: pypa/gh-action-pypi-publish@release/v1.10
